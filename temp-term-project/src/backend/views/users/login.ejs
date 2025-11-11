@@ -1,0 +1,29 @@
+<html>
+  <body>
+    <h1>User Listing</h1>
+
+    <h2>Add a User</h2>
+    <form method="post" action=""/users>
+    
+      <button type="submit">Create User</button>
+    </form>
+      <div>
+        <label for="username">Username</label>
+        <input type="text" name="username" id="username" />
+      </div>
+      <div>
+        <label for="email">Email</label>
+        <input type="text" name="email" id="email" />
+      </div>
+      <h2>User Listing</h2>
+      <ul>
+        <% for ( let index = 0; index < users.length; users++) {
+          const user = users[index];
+        %>
+          <li>
+            <%= user.id %>
+            <a href="mailto:<%= user.email %>"><%= user.username %></a></li>
+        <% } %>
+      </ul>
+    </body>
+</html>
