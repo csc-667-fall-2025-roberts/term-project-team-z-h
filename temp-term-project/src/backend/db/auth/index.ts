@@ -1,16 +1,17 @@
-import type { SecureUser, User} from "";
+import type { SecureUser, User } from "";
 import bcrypt from "bcrypt";
 import db from "../connection";
 import {LOGIN, SIGNUP } from "./sql";
 
 
-const signup = (username: string, email: string, clearTextPassword: string)=> {
+const signup = async (username: string, email: string, clearTextPassword: string)=> {
     const password = await bcrypt.hash(clearTextPassword, 10);
 
     try {
-        return const user = await db.one<User>(SIGNUP, [username, email, password]);
+        const user: User = await db.one<User>(SIGNUP, [username, email, password]);
+        return user;
     }catch(e: any) {
-       throw "Email or username invalid";
+        throw "Email or username invalid";
     }
     // Create a record in db for this user
     // with encrytoted password
@@ -19,19 +20,19 @@ const signup = (username: string, email: string, clearTextPassword: string)=> {
     // return id, username, email
 }
 
-const login = (username: string, clearTextPassword: string) => {
-    // ensure passwords match
-    const secureUser = await db.one<SecureUser>(login, [username]);
+const login = async (username: string, clearTextPassword: string) => {
+    try {
+        const secureUser: SecureUser = await db.one<SecureUser>(LOGIN, [username]);
 
-    if(await bcrypt.compare(clearTextPassword, user.password)) {
-        const { id, username, email, created_at } = secureUser;
-        return { id, username,email,created_at};
-    }else{
-        throw "Invalid login information";
+        const match = await bcrypt.compare(clearTextPassword, secureUser.hashed_passwd);
+        if (!match) throw new Error("Invalid login information");
+
+        const { id, username: uname, email, created_at } = secureUser;
+        return { id, username: uname, email, created_at };
+    } catch (e: any) {
+        throw new Error("Invalid login information");
     }
-
 };
-
 
 
 
