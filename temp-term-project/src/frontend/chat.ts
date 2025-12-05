@@ -1,16 +1,13 @@
 import socketIo from "socket.io-client";
-import * as chatKeys from "../shared/chat-keys"
+import * as chatKeys from "../shared/chat-keys";
 import type { ChatMessage } from "../backend/types/types";
 
 const socket = socketIo();
 
-const listing = document.querySelector<HTMLDivElement("#message-listing")!;
-
+const listing = document.querySelector<HTMLDivElement>("#message-listing")!;
 const input = document.querySelector<HTMLInputElement>("#message-submit input")!;
-
-const button = document.querySelector<HTMLButtonElement> ("#message0submit button")!;
-
-const messageTemplate = document.querySelector<HTMLTemplateElement>("#template-chat-message");
+const button = document.querySelector<HTMLButtonElement>("#message-submit button")!;
+const messageTemplate = document.querySelector<HTMLTemplateElement>("#template-chat-message")!;
 
 const appendMessage = ({ username, created_at, message }: ChatMessage) => {
   const clone = messageTemplate.content.cloneNode(true) as DocumentFragment;
@@ -18,35 +15,27 @@ const appendMessage = ({ username, created_at, message }: ChatMessage) => {
   const timeSpan = clone.querySelector(".message-time");
   const time = new Date(created_at);
   timeSpan!.textContent = time.toLocaleDateString();
-  console.log(time, timeSpan);
 
-  const usernameSpan = clone.querySelector(".message-username")usernameSpan!.textContent = username;
-  console.log(username, usernameSpan);
+  const usernameSpan = clone.querySelector(".message-username");
+  usernameSpan!.textContent = username;
 
   const msgSpan = clone.querySelector(".message-text");
   msgSpan!.textContent = message;
-  console.log(message, msgSpan);
 
-  console.log(clone);
-
-  const messageDiv = document.createElement("div");
-  messageDiv.innerText = `${message.username} (${message.created_at}): ${message.messages}`
-
-  listing.appendChild(div);
+  listing.appendChild(clone);
 };
 
 socket.on(chatKeys.CHAT_LISTING, ({ messages }: {messages: ChatMessage[]}) => {
-  console.log(chatKeys.CHAT_LISTING, { message });
+  console.log(chatKeys.CHAT_LISTING, { messages });
 
   messages.forEach(message => {
     appendMessage(message);
-  })
+  });
 });
 
-socket.on(chatKey.CHAT_MESSAGE, (message:ChatMessage) => {
-  console.log(chatKeys.CHAT_MESSAGE, { message })
-
-  appendMessage (message);
+socket.on(chatKeys.CHAT_MESSAGE, (message: ChatMessage) => {
+  console.log(chatKeys.CHAT_MESSAGE, { message });
+  appendMessage(message);
 });
 
 const sendMessage = () => {
@@ -66,10 +55,16 @@ const sendMessage = () => {
   }
 
   input.value = "";
-}
+};
 
 button.addEventListener("click", (event) => {
   event.preventDefault();
-})
+  sendMessage();
+});
 
-input.addEventListener
+input.addEventListener("keypress", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    sendMessage();
+  }
+});

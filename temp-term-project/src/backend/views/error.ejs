@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - UNO Game</title>
+    <link rel="stylesheet" href="/css/error.css">
+</head>
+<body class="error-page">
+
+    <div class="error-card">
+        <div class="skip-card">
+            ⦸
+        </div>
+
+        <h1 class="error-code">
+            <%= typeof status !== 'undefined' ? status : '404' %>
+        </h1>
+
+        <h2>Oops! Something went wrong.</h2>
+
+        <p class="error-description">
+            <%= typeof message !== 'undefined' ? message : 'Page not found.' %>
+        </p>
+
+        <p class="error-description">
+            If only we could <strong>skip</strong> these errors…
+        </p>
+
+        <div class="error-actions">
+            <a href="/" class="btn btn-home">Go Home</a>
+            <a href="/lobby" class="btn btn-lobby">Go to Lobby</a>
+        </div>
+
+    </div>
+
+</body>
+</html>

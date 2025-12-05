@@ -3,17 +3,17 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build:backend": "powershell -Command \"if (Test-Path dist) { Remove-Item -Recurse -Force dist }; tsc; Copy-Item -Recurse src/backend/views dist/views\"",
+    "build:backend": "rm -rf dist && tsc && mkdir -p dist/backend && cp -r src/backend/views dist/backend/views && cp -r src/backend/public dist/public",
     "build:frontend": "esbuild src/frontend/entrypoint.ts --bundle --outfile=dist/public/js/bundle.js",
     "build": "npm run build:backend && npm run build:frontend",
-    "start": "node dist/server.js",
+    "start": "node dist/backend/server.js",
     "dev:frontend": "esbuild src/frontend/entrypoint.ts --bundle --outfile=src/backend/public/js/bundle.js --sourcemap --target=es2020 --watch",
     "dev:backend": "nodemon --exec ts-node src/backend/server.ts",
     "dev:live": "browser-sync start --proxy \"http://localhost:3000\" --files \"src/backend/views/**/*.ejs\" \"src/backend/public/**/*\" --no-ui --no-open --port 3001",
     "start:dev": "concurrently --names \"backend,frontend\" --prefix-colors \"green,blue,magenta\" \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:live\"",
     "migrate:create": "node-pg-migrate create -j ts -- ",
-    "migrate:up": "node-pg-migrate up",
-    "migrate:down": "node-pg-migrate down"
+    "migrate:up": "tsx node_modules/node-pg-migrate/bin/node-pg-migrate up",
+    "migrate:down": "tsx node_modules/node-pg-migrate/bin/node-pg-migrate down"
   },
   "keywords": [],
   "author": "",
@@ -53,6 +53,7 @@
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
     "typescript": "^5.9.3"
   },
   "lint-staged": {

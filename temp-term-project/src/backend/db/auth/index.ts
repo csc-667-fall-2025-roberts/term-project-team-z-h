@@ -1,30 +1,24 @@
-import type { SecureUser, User } from "";
+import type { SecureUser, User } from "../../types/types";
 import bcrypt from "bcrypt";
 import db from "../connection";
-import {LOGIN, SIGNUP } from "./sql";
+import { LOGIN, SIGNUP } from "./sql";
 
-
-const signup = async (username: string, email: string, clearTextPassword: string)=> {
+const signup = async (username: string, email: string, clearTextPassword: string): Promise<User> => {
     const password = await bcrypt.hash(clearTextPassword, 10);
 
     try {
         const user: User = await db.one<User>(SIGNUP, [username, email, password]);
         return user;
-    }catch(e: any) {
-        throw "Email or username invalid";
+    } catch (e: any) {
+        throw new Error("Email or username already exists");
     }
-    // Create a record in db for this user
-    // with encrytoted password
-    // ensure username and email are unique (take car of exceptions0)
+};
 
-    // return id, username, email
-}
-
-const login = async (username: string, clearTextPassword: string) => {
+const login = async (username: string, clearTextPassword: string): Promise<User> => {
     try {
         const secureUser: SecureUser = await db.one<SecureUser>(LOGIN, [username]);
 
-        const match = await bcrypt.compare(clearTextPassword, secureUser.hashed_passwd);
+        const match = await bcrypt.compare(clearTextPassword, secureUser.hashed_password);
         if (!match) throw new Error("Invalid login information");
 
         const { id, username: uname, email, created_at } = secureUser;
@@ -33,7 +27,5 @@ const login = async (username: string, clearTextPassword: string) => {
         throw new Error("Invalid login information");
     }
 };
-
-
 
 export { login, signup };

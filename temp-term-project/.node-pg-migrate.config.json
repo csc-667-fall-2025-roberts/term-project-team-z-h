@@ -1,0 +1,9 @@
+{
+  "database-url": {
+    "env": "DATABASE_URL"
+  },
+  "migrations-dir": "migrations",
+  "dir": "migrations",
+  "migration-file-language": "ts",
+  "tsconfig": "tsconfig.json"
+}

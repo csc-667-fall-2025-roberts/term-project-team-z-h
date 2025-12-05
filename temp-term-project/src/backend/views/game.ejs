@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNO Game</title>
+    <link rel="stylesheet" href="/css/game.css">
+    <script src="/js/bundle.js" defer></script>
+</head>
+<body class="game-page">
+    <div class="game-container">
+        <header class="game-header">
+            <div class="header-left">
+                <h1>UNO Game</h1>
+                <% if (typeof game !== 'undefined') { %>
+                    <p class="game-info">Game: <%= game.name %> | Players: <%= game.max_players %></p>
+                <% } %>
+            </div>
+            <div class="header-right">
+                <% if (typeof user !== 'undefined') { %>
+                    <span class="user-info">Welcome, <%= user.username %></span>
+                <% } %>
+                <a href="/lobby" class="btn btn-secondary">Back to Lobby</a>
+            </div>
+        </header>
+
+        <div class="game-layout">
+            <div class="game-board">
+                <h2>Game Board</h2>
+                <div class="opponents">
+                    <div class="opponent-hand">
+                        <span class="player-name">Player 2</span>
+                        <div class="card-count">7 cards</div>
+                    </div>
+                    <div class="opponent-hand">
+                        <span class="player-name">Player 3</span>
+                        <div class="card-count">7 cards</div>
+                    </div>
+                    <div class="opponent-hand">
+                        <span class="player-name">Player 4</span>
+                        <div class="card-count">7 cards</div>
+                    </div>
+                </div>
+                
+                <div class="play-area">
+                    <div class="deck-pile">
+                        <div class="card card-back">DECK</div>
+                    </div>
+                    <div class="discard-pile">
+                        <div class="card card-red">
+                            <span class="card-value">5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="player-hand">
+                    <h3>Your Hand</h3>
+                    <div class="cards-in-hand">
+                        <div class="card card-red uno-card-animation"><span class="card-value">3</span></div>
+                        <div class="card card-blue uno-card-animation"><span class="card-value">7</span></div>
+                        <div class="card card-green uno-card-animation"><span class="card-value">2</span></div>
+                        <div class="card card-yellow uno-card-animation"><span class="card-value">9</span></div>
+                        <div class="card card-red uno-card-animation"><span class="card-value">Skip</span></div>
+                        <div class="card card-wild uno-card-animation"><span class="card-value">Wild</span></div>
+                        <div class="card card-blue uno-card-animation"><span class="card-value">1</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-sidebar">
+                <div class="game-chat">
+                    <h3>Game Chat</h3>
+                    <div id="game-chat-area">
+                        <div id="game-message-listing" class="game-message-listing">
+
+                        </div>
+                        <div id="game-message-submit" class="game-message-submit">
+                            <input type="text" placeholder="Type message..." />
+                            <button class="btn btn-chat-send">Send</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-actions">
+                    <button class="btn btn-primary">Draw Card</button>
+                    <button class="btn btn-warning">Call UNO!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <template id="template-game-chat-message">
+        <div class="chat-message">
+            <span class="message-username"></span>
+            <span class="message-text"></span>
+        </div>
+    </template>
+</body>
+</html>

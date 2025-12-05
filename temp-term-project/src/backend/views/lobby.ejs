@@ -1,34 +1,98 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset = "UTF-8" >
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lobby - UNO Game</title>
+    <link rel="stylesheet" href="/css/lobby.css">
+    <script src="/js/bundle.js" defer></script>
+</head>
+<body class="lobby-page">
+    <nav class="top-nav">
+        <div class="nav-left">
+            <div class="logo">UNO!</div>
+        </div>
+        <div class="nav-right">
+            <% if (typeof user !== 'undefined') { %>
+                <span class="nav-username"><%= user.username %></span>
+                <a href="/users/profile" class="nav-link">Profile</a>
+                <a href="/users/logout" class="nav-link logout">Sign Out</a>
+            <% } %>
+        </div>
+    </nav>
 
-  </head>
-  <body>
-    <a href = "/auth/logout">Logout</a>
-    <h1>
-      Hello
-      <%= user.username %>
-      <%= user.id %>
-    </h1>
+    <div class="lobby-layout">
+        <div class="games-section">
+            <div class="game-card create-card">
+                <h2>Create New Game</h2>
+                <form method="POST" action="/lobby/create" class="create-game-form">
+                    <div class="form-group">
+                        <input 
+                            type="text" 
+                            id="game-name" 
+                            name="name" 
+                            placeholder="Enter game name"
+                            required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <select id="max-players" name="max_players">
+                            <option value="2">2 Players</option>
+                            <option value="3">3 Players</option>
+                            <option value="4" selected>4 Players</option>
+                            <option value="5">5 Players</option>
+                            <option value="6">6 Players</option>
+                            <option value="7">7 Players</option>
+                            <option value="8">8 Players</option>
+                            <option value="9">9 Players</option>
+                            <option value="10">10 Players</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-create">Create Game</button>
+                </form>
+            </div>
 
-    <div id = "chat-area">
-      <div id = "message-listing"></div>
-      <div id = "message-submit">
-        <input type = "text" placeholder = "Enter your message" />
-        <button>Send</button>
-      </div>
+            <div class="games-container">
+                <h2>Available Games</h2>
+                <div class="games-list">
+                    <% if (typeof games !== 'undefined' && games.length > 0) { %>
+                        <% games.forEach(game => { %>
+                            <div class="game-item">
+                                <div class="game-info">
+                                    <h3><%= game.name %></h3>
+                                    <p>Players: <%= game.player_count || 0 %> / <%= game.max_players %></p>
+                                </div>
+                                <a href="/games/<%= game.id %>" class="btn btn-join">Join</a>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="no-games">
+                            <p>No games available</p>
+                            <p class="small">Create one to get started!</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-section">
+            <h2>Global Chat</h2>
+            <div id="chat-area">
+                <div id="message-listing" class="message-listing"></div>
+                <div id="message-submit" class="message-submit">
+                    <input type="text" placeholder="Message" />
+                    <button class="btn btn-send">Send</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <template id = "template-chat-message">
-      <div class = "chat-message">
-        <div id = "message-text">
-          <span class = "message-username"></span>
-          <span class = "message-time"></span>
+    <template id="template-chat-message">
+        <div class="chat-message">
+            <span class="message-username"></span>
+            <span class="message-time"></span>
+            <span class="message-text"></span>
         </div>
-        <span class = "text"></span>
-      </div>
     </template>
-
-  </body>
+</body>
 </html>

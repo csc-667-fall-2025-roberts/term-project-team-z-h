@@ -1,23 +1,23 @@
 import { MigrationBuilder, PgType } from 'node-pg-migrate';
 
-const TABLE_NAME = "users";
+const TABLE_NAME = "chat";
 
 export async function up(pgm: MigrationBuilder): Promise<void> {
     pgm.createTable(TABLE_NAME, {
         id: "id",
-        username: {
-            type: PgType.VARCHAR + "(50)",
+        content: {
+            type: PgType.VARCHAR + "(150)",
             notNull: true,
-            unique: true
         },
-        email: {
-            type: PgType.VARCHAR + "(255)",
+        user_id: {
+            type: PgType.INTEGER,
             notNull: true,
-            unique: true
+            references: "users(id)",
+            onDelete: "CASCADE",
         },
-        hashed_password: {
-            type: PgType.VARCHAR + "(255)",
-            notNull: true,
+        game_id: {
+            type: PgType.INTEGER,
+            notNull: false,
         },
         created_at: {
             type: PgType.TIMESTAMP,
@@ -26,8 +26,8 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
         }
     });
 
-    pgm.createIndex(TABLE_NAME, "username");
-    pgm.createIndex(TABLE_NAME, "email");
+    pgm.createIndex(TABLE_NAME, "game_id");
+    pgm.createIndex(TABLE_NAME, "created_at");
 }
 
 export async function down(pgm: MigrationBuilder): Promise<void> {

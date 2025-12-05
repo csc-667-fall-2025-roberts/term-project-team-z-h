@@ -1,15 +1,31 @@
-<html>
-    <head>
-        <link rel="stylesheet" href="temp.css" />
-        <script src="/js/bundle.js" defer></script>
-    </head>
-    <body>
-        <h1>Available Games</h1>
-        <button id="test-button">Click Me</button>
-        <ul>
-        <% for(let i = 0; i < gamesListing.length; i++) { %>
-          <li><%= i %>: <%= gamesListing[i] %></li>
-        <% } %>
-        </ul>
-    </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNO Game - Home</title>
+    <link rel="stylesheet" href="/css/home.css">
+    <script src="/js/bundle.js" defer></script>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="card-animation">
+                <div class="card red">7</div>
+                <div class="card blue">SKIP</div>
+                <div class="card green">+2</div>
+                <div class="card yellow">REV</div>
+                <div class="card wild">WILD</div>
+            </div>
+
+            <h1>Welcome to UNO!</h1>
+            <p class="subtitle">Ready to play online?</p>
+            
+            <div class="home-buttons">
+                <a href="/users/login" class="btn sign-in">Sign in</a>
+                <a href="/users/signup" class="btn create-account">Create Account</a>
+            </div>
+        </div>
+    </div>
+</body>
 </html>
