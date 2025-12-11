@@ -4,20 +4,17 @@
   "description": "CSC667 Term Project - UNO Game",
   "main": "dist/backend/server.js",
   "scripts": {
-    "build": "rm -rf dist && tsc && mkdir -p dist/backend && cp -r src/backend/views dist/backend/views && cp -r src/backend/public dist/public",
+    "build": "rm -rf dist && tsc && mkdir -p dist/backend && cp -r src/backend/views dist/backend/views && cp -r src/backend/public dist/public && npm run build:frontend",
     "build:frontend": "esbuild src/frontend/entrypoint.ts --bundle --outfile=dist/public/js/bundle.js",
     "start": "node dist/backend/server.js",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "nodemon --watch src/backend --ext ts,ejs,css --exec \"npm run build && npm start\"",
     "dev:frontend": "esbuild src/frontend/entrypoint.ts --bundle --outfile=dist/public/js/bundle.js --watch",
     "migrate:up": "tsx node_modules/node-pg-migrate/bin/node-pg-migrate up",
-    "migrate:down": "tsx node_modules/node-pg-migrate/bin/node-pg-migrate down"
+    "migrate:down": "tsx node_modules/node-pg-migrate/bin/node-pg-migrate down",
+    "render-build": "npm install && npm run build && npm run migrate:up"
   },
-  "keywords": [
-    "uno",
-    "game",
-    "multiplayer"
-  ],
+  "keywords": ["uno", "game", "multiplayer"],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -32,6 +29,7 @@
     "node-pg-migrate": "^7.7.1",
     "pg": "^8.13.1",
     "pg-promise": "^11.9.1",
+    "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
@@ -41,12 +39,15 @@
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.9.0",
     "@types/pg": "^8.11.10",
-    "@types/socket.io-client": "^1.4.36",
+    "@types/socket.io-client": "^3.0.0",
     "concurrently": "^9.1.0",
     "esbuild": "^0.24.0",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
