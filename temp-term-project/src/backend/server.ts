@@ -8,21 +8,30 @@ import rootRoutes from "./routes/root";
 import { userRouter } from "./routes/auth";
 import lobbyRoutes from "./routes/lobby";
 import gameRoutes from "./routes/game";
+import { createServer } from "http";
+import { Server }  from "socket.io"
+import { create as createChatMessage, list as listChatMessages} from "./chat";
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer);
 const PORT = process.env.PORT || 3000;
 
-app.use(
-    session({
-        secret: "uno-game-secret-key-change-in-production",
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-            secure: false, 
-            maxAge: 1000 * 60 * 60 * 24, 
-        },
-    })
-);
+app.set("io", io);
+
+const sessionMiddleware = session({
+    secret: "uno-game-secret-key-change-in-production" as string,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false,
+        maxAge: 1000 * 60 * 60 * 24,
+    },
+} as session.SessionOptions);
+
+app.use(sessionMiddleware);
+
+io.engine.use(sessionMiddleware);
 
 // Middleware
 app.use(morgan("dev"));
@@ -42,6 +51,49 @@ app.use("/users", userRouter);
 app.use("/lobby", lobbyRoutes);
 app.use("/games", gameRoutes);
 
+io.on("connection", (socket) => {
+    console.log("user connected:", socket.id);
+
+    const session = (socket.request as any).session;
+    const user = session?.user;
+
+    socket.join("lobby");
+
+    socket.on("chat:message", async (data: { message: string }) => {
+        if (!user) {
+            socket.emit ("chat:error", {error: "Not authenticated" });
+            return;
+        }
+
+        try {
+            const savedMessage = await createChatMessage(user.id, data.message);
+
+            io.to("lobby").emit("chat:message", {
+                id: savedMessage.id,
+                username: user.username,
+                message: savedMessage.message,
+                created_at: savedMessage.created_at,
+            });
+        } catch (error) {
+            console.error("Error saving chat message: ", error);
+            socket.emit("chat:error", {error: "Failed to send message"});
+        }
+    });
+
+    socket.on("chat:load", async () => {
+        try {
+            const messages = await listChatMessages(50);
+            socket.emit ("chat:history", messages);
+        } catch (error) {
+            console.error("Error loading chat history:", error);
+        }
+    });
+
+    socket.on("disconnect", () => {
+        console.log("User disconnected:", socket.id);
+    });
+});
+
 // 404 handler
 app.use((_request, _response, next) => {
     next(createHttpError(404));
@@ -56,6 +108,6 @@ app.use((error: any, _request: express.Request, response: express.Response, _nex
     response.render("error", { status, message });
 });
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
 });

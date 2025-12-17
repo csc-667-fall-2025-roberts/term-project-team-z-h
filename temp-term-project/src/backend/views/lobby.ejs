@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lobby - UNO Game</title>
+    <title>UNO Game Lobby</title>
     <link rel="stylesheet" href="/css/lobby.css">
     <script src="/js/bundle.js" defer></script>
+    <% if (typeof user !== 'undefined') { %>
+        <script>
+            window.CURRENT_USER = '<%= user.username %>';
+        </script>
+    <% } %>
 </head>
 <body class="lobby-page">
     <nav class="top-nav">

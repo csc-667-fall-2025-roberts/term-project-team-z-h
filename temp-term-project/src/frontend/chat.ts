@@ -1,70 +1,85 @@
-import socketIo from "socket.io-client";
-import * as chatKeys from "../shared/chat-keys";
-import type { ChatMessage } from "../backend/types/types";
+import { io } from 'socket.io-client';
 
-const socket = socketIo();
+const socket = io();
+const currentUser = (window as any).CURRENT_USER;
 
-const listing = document.querySelector<HTMLDivElement>("#message-listing")!;
-const input = document.querySelector<HTMLInputElement>("#message-submit input")!;
-const button = document.querySelector<HTMLButtonElement>("#message-submit button")!;
-const messageTemplate = document.querySelector<HTMLTemplateElement>("#template-chat-message")!;
+const listing = document.querySelector<HTMLDivElement>('.message-listing');
+const input = document.querySelector<HTMLInputElement>('.message-submit input');
+const button = document.querySelector<HTMLButtonElement>('.message-submit .btn-send');
+const messageTemplate = document.querySelector<HTMLTemplateElement>('#template-chat-message');
 
-const appendMessage = ({ username, created_at, message }: ChatMessage) => {
-  const clone = messageTemplate.content.cloneNode(true) as DocumentFragment;
+if (input && button && listing && messageTemplate) {
+    function formatTime(timestamp: string): string {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit',
+            hour12: true 
+        });
+    }
 
-  const timeSpan = clone.querySelector(".message-time");
-  const time = new Date(created_at);
-  timeSpan!.textContent = time.toLocaleDateString();
+    function addMessage(data: { username: string; message: string; created_at: string }) {
+        const clone = messageTemplate!.content.cloneNode(true) as DocumentFragment;
+        const messageElement = clone.querySelector('.chat-message') as HTMLElement;
+        
+        if (messageElement) {
+            if (data.username === currentUser) {
+                messageElement.classList.add('mine');
+            }
 
-  const usernameSpan = clone.querySelector(".message-username");
-  usernameSpan!.textContent = username;
+            const usernameSpan = messageElement.querySelector('.message-username');
+            const timeSpan = messageElement.querySelector('.message-time');
+            const textSpan = messageElement.querySelector('.message-text');
 
-  const msgSpan = clone.querySelector(".message-text");
-  msgSpan!.textContent = message;
+            if (usernameSpan) usernameSpan.textContent = `${data.username}:`;
+            if (timeSpan) timeSpan.textContent = formatTime(data.created_at);
+            if (textSpan) textSpan.textContent = data.message;
 
-  listing.appendChild(clone);
-};
+            listing!.appendChild(clone);
+            listing!.scrollTop = listing!.scrollHeight;
+        }
+    }
 
-socket.on(chatKeys.CHAT_LISTING, ({ messages }: {messages: ChatMessage[]}) => {
-  console.log(chatKeys.CHAT_LISTING, { messages });
+    function sendMessage() {
+        const message = input!.value.trim();
+        if (!message) return;
 
-  messages.forEach(message => {
-    appendMessage(message);
-  });
-});
+        socket.emit('chat:message', { message });
+        input!.value = '';
+    }
 
-socket.on(chatKeys.CHAT_MESSAGE, (message: ChatMessage) => {
-  console.log(chatKeys.CHAT_MESSAGE, { message });
-  appendMessage(message);
-});
-
-const sendMessage = () => {
-  const message = input.value.trim();
-
-  if(message.length > 0) {
-    const body = JSON.stringify({ message });
-
-    fetch("/chat/", {
-      method: "post",
-      body,
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json"
-      },
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        sendMessage();
     });
-  }
 
-  input.value = "";
-};
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
 
-button.addEventListener("click", (event) => {
-  event.preventDefault();
-  sendMessage();
-});
+    socket.on('connect', () => {
+        socket.emit('chat:load');
+    });
 
-input.addEventListener("keypress", (event) => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    sendMessage();
-  }
-});
+    socket.on('chat:message', (data) => {
+        addMessage(data);
+    });
+
+    socket.on('chat:history', (messages: any[]) => {
+        listing.innerHTML = '';
+        
+        messages.reverse().forEach(msg => {
+            addMessage({
+                username: msg.username,
+                message: msg.message,
+                created_at: msg.created_at
+            });
+        });
+    });
+
+    socket.on('chat:error', (data) => {
+        alert(data.error);
+    });
+}
