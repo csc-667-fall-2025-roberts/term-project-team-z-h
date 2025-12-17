@@ -5,5 +5,5 @@ RETURNING id, username, email, created_at
 `;
 
 export const LOGIN = `
-SELECT * FROM users WHERE username="$1"
+SELECT * FROM users WHERE username=$1
 `;

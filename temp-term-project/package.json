@@ -14,7 +14,11 @@
     "migrate:down": "tsx node_modules/node-pg-migrate/bin/node-pg-migrate down",
     "render-build": "npm install && npm run build && npm run migrate:up"
   },
-  "keywords": ["uno", "game", "multiplayer"],
+  "keywords": [
+    "uno",
+    "game",
+    "multiplayer"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -24,6 +28,7 @@
     "dotenv": "^16.4.7",
     "ejs": "^3.1.10",
     "express": "^4.21.1",
+    "express-session": "^1.18.2",
     "http-errors": "^2.0.0",
     "morgan": "^1.10.0",
     "node-pg-migrate": "^7.7.1",
@@ -35,6 +40,7 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.0",
+    "@types/express-session": "^1.18.2",
     "@types/http-errors": "^2.0.4",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.9.0",

@@ -3,7 +3,9 @@ import db from "../db/connection";
 
 const router = express.Router();
 
-router.get("/", async (_request, response) => {
+router.get("/", async (request, response) => {
+    const user = request.session.user || {id: 0, username: "Guest"};
+
     try {
         const games = await db.any(`
             SELECT 
@@ -16,44 +18,43 @@ router.get("/", async (_request, response) => {
             ORDER BY games.created_at DESC
         `);
         
-        const user = { 
-            id: 1, 
-            username: "Guest" 
-        };
-        
         response.render("lobby", { user, games });
     } catch (error) {
         console.error("Error loading lobby:", error);
         response.render("lobby", { 
-            user: { id: 1, username: "Guest" }, 
+            user,
             games: [] 
         });
     }
 });
 
-router.post("/create", async (req, res) => {
-    try {
-        const { name, max_players } = req.body;
-        const user = { id: 1, username: "Guest" };
+router.post("/create", async (request, response) => {
+    const user = request.session.user;
 
-        // Create game
+    if (!user){
+        return response.redirect("/user/login");
+    }
+
+    try {
+        const { name, max_players } = request.body;
+
         const newGame = await db.one(
             `INSERT INTO games (name, created_by, state, max_players)
-             VALUES ($1, $2, 'waiting', $3)
-             RETURNING id`,
+            VALUES ($1, $2, 'waiting', $3)
+            RETURNING id`,
             [name, user.id, max_players]
         );
 
         await db.none(
             `INSERT INTO game_players (game_id, user_id)
-             VALUES ($1, $2)`,
+            VALUES ($1, $2)`,
             [newGame.id, user.id]
         );
 
-        res.redirect(`/games/${newGame.id}`);
+        response.redirect(`/games/${newGame.id}`);
     } catch (error) {
         console.error("Error creating game:", error);
-        res.redirect("/lobby");
+        response.redirect("/lobby");
     }
 });
 

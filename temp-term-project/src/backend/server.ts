@@ -3,6 +3,7 @@ import express from "express";
 import createHttpError from "http-errors";
 import morgan from "morgan";
 import bodyParser from "body-parser";
+import session from "express-session";
 import rootRoutes from "./routes/root";
 import { userRouter } from "./routes/auth";
 import lobbyRoutes from "./routes/lobby";
@@ -10,6 +11,18 @@ import gameRoutes from "./routes/game";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.use(
+    session({
+        secret: "uno-game-secret-key-change-in-production",
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            secure: false, 
+            maxAge: 1000 * 60 * 60 * 24, 
+        },
+    })
+);
 
 // Middleware
 app.use(morgan("dev"));
