@@ -18,3 +18,17 @@ WHERE chat.game_id IS NULL
 ORDER BY chat.created_at DESC
 LIMIT $1
 `;
+
+export const RECENT_GAME_MESSAGES = `
+SELECT 
+  chat.id,
+  chat.user_id,
+  chat.content as message,
+  chat.created_at,
+  users.username
+FROM chat
+JOIN users ON chat.user_id = users.id
+WHERE chat.game_id = $1
+ORDER BY chat.created_at DESC
+LIMIT $2
+`;

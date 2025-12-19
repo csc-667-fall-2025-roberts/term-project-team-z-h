@@ -10,7 +10,7 @@ import lobbyRoutes from "./routes/lobby";
 import gameRoutes from "./routes/game";
 import { createServer } from "http";
 import { Server }  from "socket.io"
-import { create as createChatMessage, list as listChatMessages} from "./chat";
+import { create, create as createChatMessage, list as listChatMessages} from "./chat";
 
 const app = express();
 const httpServer = createServer(app);
@@ -52,12 +52,19 @@ app.use("/lobby", lobbyRoutes);
 app.use("/games", gameRoutes);
 
 io.on("connection", (socket) => {
-    console.log("user connected:", socket.id);
 
     const session = (socket.request as any).session;
     const user = session?.user;
 
     socket.join("lobby");
+
+    socket.on("game:join", (data: { gameId: number }) => {
+        socket.join(`game:${data.gameId}`);
+    });
+
+    socket.on("game:leave", (data: { gameId: number }) => {
+        socket.leave(`game:${data.gameId}`);
+    });
 
     socket.on("chat:message", async (data: { message: string }) => {
         if (!user) {
@@ -92,14 +99,43 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
     });
+
+    socket.on("game:chat:message", async (data: { gameId: number; message: string}) => {
+        if(!user) {
+            socket.emit("chat:error", { error: "Not authenticated" });
+            return;
+        } try {
+            const savedMessage = await createChatMessage(user.id, data.message, data.gameId);
+
+            io.to(`game:${data.gameId}`).emit("game:chat:message", {
+                id: savedMessage.id,
+                username: user.username,
+                message: savedMessage.message,
+                created_at: savedMessage.created_at,
+            });
+        } catch(error) {
+            socket.emit("chat:error", { error: "Failed to send message" });
+        }
+    });
+
+    socket.on("game:chat:load", async (data: { gameId: number }) => {
+        try {
+            const messages = await listChatMessages(50, data.gameId);
+            socket.emit("game:chat:history", messages);
+        } catch (error) {
+            console.error("error loading the chat chat history", error);
+        }
+    });
+
+    socket.on("disconnect", () => {
+        console.log("User disconnected:", socket.id);
+    });
 });
 
-// 404 handler
 app.use((_request, _response, next) => {
     next(createHttpError(404));
 });
 
-// Error handler
 app.use((error: any, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
     const status = error.status || 500;
     const message = error.message || "Internal Server Error";
