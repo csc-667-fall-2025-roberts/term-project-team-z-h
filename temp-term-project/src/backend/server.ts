@@ -11,6 +11,7 @@ import gameRoutes from "./routes/game";
 import { createServer } from "http";
 import { Server }  from "socket.io"
 import { create, create as createChatMessage, list as listChatMessages} from "./chat";
+import { registerGameSockets } from "./sockets/game";
 
 const app = express();
 const httpServer = createServer(app);
@@ -32,6 +33,8 @@ const sessionMiddleware = session({
 app.use(sessionMiddleware);
 
 io.engine.use(sessionMiddleware);
+
+registerGameSockets(io);    
 
 // Middleware
 app.use(morgan("dev"));

@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= game.name %> - UNO Game</title>
     <link rel="stylesheet" href="/css/game.css">
+    <script src="/socket.io/socket.io.js"></script>
     <script src="/js/bundle.js" defer></script>
     <% if (typeof user !== 'undefined') { %>
         <script>
-            window.CURRENT_USER = '<%= user.username %>';
-            window.GAME_ID = <%= game.id %>;
+            // window.CURRENT_USER = '<%= user.username %>';
+            // window.GAME_ID = <%= game.id %>;
+            window.GAME_ID = <%- JSON.stringify(game.id) %>;
+            window.CURRENT_USER = <%- JSON.stringify(user.username) %>;
+
         </script>
     <% } %>
 </head>
@@ -31,8 +35,10 @@
         <div class="game-layout">
             <div class="game-board">
                 <h2>Game Board</h2>
+                <div id="status" class="game-status">Loading…</div>
+
                 
-                <div class="opponents">
+                <!-- <div class="opponents">
                     <% players.forEach(player => { %>
                         <% if (player.username !== user.username) { %>
                             <div class="opponent-hand">
@@ -49,20 +55,31 @@
                         <span class="player-name">Player Bot 2</span>
                         <div class="card-count">8 cards</div>
                     </div>
-                </div>
+                </div> -->
+                <div class="opponents" id="players"></div>
 
                 <div class="play-area">
-                    <div class="deck-pile">
+                    <!-- <div class="deck-pile">
                         <div class="card card-back">DECK</div>
+                    </div> -->
+                    <div class="deck-pile">
+                        <div class="card card-back" id="deck">
+                            DECK (<span id="deckCount">0</span>)
+                        </div>
                     </div>
-                    <div class="discard-pile">
+
+                    <!-- <div class="discard-pile">
                         <div class="card card-red">
                             <span class="card-value">5</span>
                         </div>
+                    </div> -->
+                    <div class="discard-pile">
+                        <div class="card" id="topCard">—</div>
                     </div>
+
                 </div>
 
-                <div class="player-hand">
+                <!-- <div class="player-hand">
                     <h3>Your Hand</h3>
                     <div class="cards-in-hand">
                         <div class="card card-red"><span class="card-value">3</span></div>
@@ -73,7 +90,12 @@
                         <div class="card card-wild"><span class="card-value">Wild</span></div>
                         <div class="card card-blue"><span class="card-value">1</span></div>
                     </div>
+                </div> -->
+                <div class="player-hand">
+                    <h3>Your Hand</h3>
+                    <div class="cards-in-hand" id="hand"></div>
                 </div>
+
             </div>
 
             <div class="game-sidebar">
@@ -87,7 +109,8 @@
                 </div>
 
                 <div class="game-actions">
-                    <button class="btn btn-primary">Draw Card</button>
+                    <button id="drawBtn" class="btn btn-primary">Draw Card</button>
+                    <button id="startBtn" class="btn btn-secondary">Start Game</button>
                     <button class="btn btn-warning">Call UNO!</button>
                 </div>
             </div>

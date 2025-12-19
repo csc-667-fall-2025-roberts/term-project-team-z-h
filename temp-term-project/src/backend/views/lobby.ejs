@@ -66,7 +66,10 @@
                                     <h3><%= game.name %></h3>
                                     <p>Players: <%= game.player_count || 0 %> / <%= game.max_players %></p>
                                 </div>
-                                <a href="/games/<%= game.id %>" class="btn btn-join">Join</a>
+                                <!-- <a href="/games/<%= game.id %>" class="btn btn-join">Join</a> -->
+                                 <form method="POST" action="/lobby/<%= game.id %>/join">
+                                    <button type="submit" class="btn btn-join">Join</button>
+                                 </form>
                             </div>
                         <% }) %>
                     <% } else { %>
