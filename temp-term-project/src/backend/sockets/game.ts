@@ -59,10 +59,15 @@ export function registerGameSockets(io:Server){
             }
         });
 
-        socket.on("game:playCard", async (data: {gameId: number; cardId: string}) => {
+        socket.on("game:playCard", async (data: {gameId: number; cardId: string; chosenColor?:"red" | "yellow" | "green" | "blue";}) => {
             try {
-                await gameService.playCard(userId, data.gameId, data.cardId);
+                const result = await gameService.playCard(userId, data.gameId, data.cardId, data.chosenColor);
                 await emitStateToRoom(data.gameId);
+                if ((result as any).winner){
+                    io.to(`game:${data.gameId}`).emit("game:winner", {
+                        winnerId: (result as any).winner
+                    });
+                }
             } catch (err) {
                 socket.emit("game:error", {
                     message: err instanceof Error ? err.message : String(err),
@@ -87,11 +92,21 @@ export function registerGameSockets(io:Server){
                 await emitStateToRoom(data.gameId);
             } catch (err) {
                 socket.emit("game:error", {
-                message: err instanceof Error ? err.message : String(err),
+                    message: err instanceof Error ? err.message : String(err),
                 });
             }
         });
 
+        socket.on("game:callUno", async (data: { gameId: number }) => {
+            try {
+                await gameService.callUno(userId, data.gameId);
+                io.to(`game:${data.gameId}`).emit("game:unoCall", { userId });
+            } catch (err) {
+                socket.emit("game:error", {
+                    message: err instanceof Error ? err.message : String(err),
+                });
+            }
+        });
     });
 }
 

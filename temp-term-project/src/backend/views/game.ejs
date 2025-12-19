@@ -9,11 +9,11 @@
     <script src="/js/bundle.js" defer></script>
     <% if (typeof user !== 'undefined') { %>
         <script>
-            // window.CURRENT_USER = '<%= user.username %>';
-            // window.GAME_ID = <%= game.id %>;
-            window.GAME_ID = <%- JSON.stringify(game.id) %>;
-            window.CURRENT_USER = <%- JSON.stringify(user.username) %>;
-
+            window.CURRENT_USER = '<%= user.username %>';
+            window.GAME_ID = <%= game.id %>;
+            window.CURRENT_USER = <%= user.id %>;
+            //window.GAME_ID = <%- JSON.stringify(game.id) %>;
+            //window.CURRENT_USER = <%- JSON.stringify(user.username) %>;
         </script>
     <% } %>
 </head>
@@ -116,6 +116,19 @@
             </div>
         </div>
     </div>
+
+    <div id="colorPickerModal" class="color-picker-modal">
+        <div class="color-picker-content">
+            <h2>Choose a Color</h2>
+            <div class="color-buttons">
+                <button class="color-btn color-btn-red" data-color="red">RED</button>
+                <button class="color-btn color-btn-yellow" data-color="yellow">YELLOW</button>
+                <button class="color-btn color-btn-green" data-color="green">GREEN</button>
+                <button class="color-btn color-btn-blue" data-color="blue">BLUE</button>
+            </div>
+        </div>
+    </div>
+
 
     <template id="template-chat-message">
         <div class="chat-message">

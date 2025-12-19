@@ -91,8 +91,8 @@ export async function playCard(
     cardId: string,
     chosenColor?: "red" | "yellow" | "green" | "blue"
 ) {
-    const gameRow = await db.oneOrNone(`SELECT state FROM games WHERE id=$1`,
-        [gameId]);
+
+    const gameRow = await db.oneOrNone(`SELECT state FROM games WHERE id=$1`,[gameId]);
     if(gameRow?.state == "finished") throw new Error("Game is finished!");
     
     const game = getGame(gameId);
@@ -120,6 +120,14 @@ export async function playCard(
 
     const top = game.discard[game.discard.length-1]!;
     const currentColor = game.currentColor;
+
+    if (!canPlayCard(card, top, currentColor)) {
+        throw new Error (`Cannot play that card ${card.color} ${card.value}`);
+    }
+
+    if (card.color === "wild" && !chosenColor) {
+        throw new Error("Must choose a color for Wild card");
+    }
 
     // remove from hand place on discard
 
@@ -168,6 +176,7 @@ export async function playCard(
             `UPDATE games SET state='finished' WHERE id=$1`,
             [gameId]
         );
+        (game as any).winner = userId;
     }
     return game;
 }
@@ -186,6 +195,24 @@ export async function drawCard(userId: number, gameId: number) {
   const currentPlayerId = game.players[game.currentTurn];
   if (currentPlayerId !== userId) throw new Error("Not your turn");
 
+  if(game.deck.length === 0) {
+    console.log("Deck is empty, reshuffling the pile ");
+
+    if(game.discard.length <= 1){
+        throw new Error ("No cards left to draw!");
+    }
+
+    const topCard = game.discard.pop()!;
+    game.deck = [...game.discard];
+    game.discard = [topCard];
+
+    for (let i = game.deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [game.deck[i], game.deck[j]] = [game.deck[j]!, game.deck[i]!];
+    }
+  }
+
+/*
   // If deck empty, reshuffle discard into deck (keep top card)
   if (game.deck.length === 0 && game.discard.length > 1) {
     const top = game.discard.pop()!;
@@ -198,7 +225,10 @@ export async function drawCard(userId: number, gameId: number) {
       game.deck[i] = game.deck[j]!;
       game.deck[j] = tmp;
     }
+
+    console.log("Deck has been reshuffled")
   }
+*/
 
   const drawn = game.deck.shift();
   if (!drawn) throw new Error("No cards left to draw");
@@ -209,4 +239,24 @@ export async function drawCard(userId: number, gameId: number) {
   game.currentTurn = nextPlayerIndex(game, 1);
 
   return game;
+}
+
+
+export async function callUno(userId: number, gameId: number) {
+    const game = getGame(gameId);
+    
+    const member = await db.oneOrNone(
+        `SELECT 1 FROM game_players WHERE game_id=$1 AND user_id=$2`,
+        [gameId, userId]
+    );
+    if (!member) throw new Error("Not a player");
+    
+    const hand = game.hands[userId];
+    if (!hand || hand.length !== 1) {
+        throw new Error("Can only call UNO with exactly 1 card!");
+    }
+    
+    console.log(`🎉 Player ${userId} called UNO!`);
+    
+    return game;
 }

@@ -36,6 +36,46 @@ function $(id: string): HTMLElement {
   return el;
 }
 
+function formatCardValue(value: string): string {
+    const valueMap: Record<string, string> = {
+        'wild': 'WILD',
+        'wild_draw4': '+4',
+        'draw2': '+2',
+        'skip': 'SKIP',
+        'reverse': 'REV',
+    };
+    return valueMap[value.toLowerCase()] || value.toUpperCase();
+}
+
+function showColorPicker(cardId: string): Promise<string> {
+    return new Promise((resolve) => {
+        const modal = $("colorPickerModal");
+        modal.style.display = "flex";
+
+        const buttons = modal.querySelectorAll(".color-btn");
+        
+        const clickHandler = (e: Event) => {
+            const target = e.target as HTMLElement;
+            const color = target.getAttribute("data-color");
+            
+            if (color) {
+                modal.style.display = "none";
+                
+                // Remove all listeners
+                buttons.forEach(btn => {
+                    btn.removeEventListener("click", clickHandler);
+                });
+                
+                resolve(color);
+            }
+        };
+
+        buttons.forEach(btn => {
+            btn.addEventListener("click", clickHandler);
+        });
+    });
+}
+
 // rendering 
 function render() {
   if (!publicState) return;
@@ -70,9 +110,18 @@ function render() {
   for (const c of privateState?.yourHand ?? []) {
     const card = document.createElement("div");
     card.className = `card card-${c.color}`;
-    card.textContent = c.value.toUpperCase();
-    card.onclick = () => {
-      socket.emit("game:playCard", { gameId, cardId: c.id });
+    card.textContent = formatCardValue(c.value);
+    card.onclick = async () => {
+      let chosenColor: string | undefined;
+        if (c.color === "wild") {
+        chosenColor = await showColorPicker(c.id);
+        console.log(`Chosen color: ${chosenColor}`);
+      }
+      socket.emit("game:playCard", { 
+        gameId, 
+        cardId: c.id,
+        chosenColor 
+      });
     };
     hand.appendChild(card);
   }
@@ -116,4 +165,30 @@ $("startBtn").addEventListener("click", () => {
 
 $("drawBtn").addEventListener("click", () => {
   socket.emit("game:draw", { gameId });
+});
+
+const unoBtn = document.getElementById('unoBtn');
+if (unoBtn) {
+  unoBtn.addEventListener('click', () => {
+    socket.emit('game:callUno', { gameId });
+  });
+}
+
+socket.on('game:unoCall', (data: { userId: number }) => {
+  const status = $('status');
+  status.textContent += ` | Player ${data.userId} called UNO!`;
+  setTimeout(() => render(), 2000);
+});
+
+socket.on('game:winner', (data: { winnerId: number }) => {
+  const currentUserId = (window as any).CURRENT_USER_ID;
+  
+  if (data.winnerId === currentUserId) {
+    alert('🎉 YOU WON! 🎉\n\nCongratulations!');
+  } else {
+    alert(`Game Over!\n\nPlayer ${data.winnerId} wins!\n\nBetter luck next time!`);
+  }
+    setTimeout(() => {
+    window.location.href = '/lobby';
+  }, 3000);
 });
