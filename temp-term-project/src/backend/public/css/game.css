@@ -129,6 +129,24 @@ a:hover {
     background-color: #2980b9;
 }
 
+.btn-catch-uno {
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: bold;
+    transition: var(--transition);
+}
+
+.btn-catch-uno:hover {
+    background: #c0392b;
+    transform: scale(1.05);
+}
+
 .game-container {
     height: calc(100vh - 72px);
     overflow: hidden;
@@ -167,7 +185,7 @@ a:hover {
     display: flex;
     justify-content: space-around;
     margin-top: 1rem;
-    margin-bottom: 5.5rem;
+    margin-bottom: 5rem;
 }
 
 .opponent-hand {
@@ -213,6 +231,20 @@ a:hover {
     transition: var(--transition);
 }
 
+#deck {
+    font-size: 1rem;
+    flex-direction: column;
+    line-height: 1.2rem;
+    padding: .5rem;
+    text-align: center;
+    gap: .3rem;
+}
+
+#deck #deckCount{
+    font-size: 1.2rem;
+    margin-top: .2rem;
+}
+
 .card:hover {
     transform: translateY(-10px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
@@ -249,7 +281,7 @@ a:hover {
 }
 
 .player-hand {
-    margin-top: 4rem;
+    margin-top: 3.5rem;
 }
 
 .player-hand h3 {
@@ -269,6 +301,19 @@ a:hover {
     width: 80px;
     height: 112px;
     font-size: 1.2rem;
+}
+
+.cards-in-hand.my-turn .card {
+    animation: cardBounce 1s ease-in-out infinite;
+}
+
+.game-status {
+    padding: 1rem;
+    background: var(--light-color);
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    font-weight: 600;
+    text-align: center;
 }
 
 .game-sidebar {
@@ -311,7 +356,6 @@ a:hover {
     min-height: 0;
 }
 
-/* Chat bubble styles - like lobby chat */
 .game-chat .chat-message {
     display: flex;
     flex-direction: column;
@@ -417,6 +461,99 @@ a:hover {
 
 .game-board::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.3);
+}
+
+
+.color-picker-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.color-picker-content {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.color-picker-content h2 {
+    margin-bottom: 20px;
+    color: var(--dark-color);
+    font-size: 1.5rem;
+}
+
+.color-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.color-btn {
+    width: 100px;
+    height: 100px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 20px;
+    color: white;
+    font-weight: bold;
+    transition: var(--transition);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.color-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.color-btn-red {
+    background: #e74c3c;
+}
+
+.color-btn-yellow {
+    background: #f1c40f;
+}
+
+.color-btn-green {
+    background: #2ecc71;
+}
+
+.color-btn-blue {
+    background: #3498db;
+}
+
+.color-btn-red:hover {
+    background: #c0392b;
+}
+
+.color-btn-yellow:hover {
+    background: #d4a007;
+}
+
+.color-btn-green:hover {
+    background: #27ae60;
+}
+
+.color-btn-blue:hover {
+    background: #2980b9;
+}
+
+@keyframes cardBounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
 }
 
 @media (max-width: 1024px) {

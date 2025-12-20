@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= game.name %> - UNO Game</title>
     <link rel="stylesheet" href="/css/game.css">
+    <script src="/socket.io/socket.io.js"></script>
     <script src="/js/bundle.js" defer></script>
     <% if (typeof user !== 'undefined') { %>
         <script>
             window.CURRENT_USER = '<%= user.username %>';
+            window.CURRENT_USER_ID = <%= user.id %>;
             window.GAME_ID = <%= game.id %>;
         </script>
     <% } %>
@@ -31,49 +33,25 @@
         <div class="game-layout">
             <div class="game-board">
                 <h2>Game Board</h2>
-                
-                <div class="opponents">
-                    <% players.forEach(player => { %>
-                        <% if (player.username !== user.username) { %>
-                            <div class="opponent-hand">
-                                <span class="player-name"><%= player.username %></span>
-                                <div class="card-count">7 cards</div>
-                            </div>
-                        <% } %>
-                    <% }) %>
-                    <div class="opponent-hand">
-                        <span class="player-name">Player Bot 1</span>
-                        <div class="card-count">5 cards</div>
-                    </div>
-                    <div class="opponent-hand">
-                        <span class="player-name">Player Bot 2</span>
-                        <div class="card-count">8 cards</div>
-                    </div>
-                </div>
+                <div id="status" class="game-status">Loading…</div>
+                <div class="opponents" id="players"></div>
 
                 <div class="play-area">
                     <div class="deck-pile">
-                        <div class="card card-back">DECK</div>
-                    </div>
-                    <div class="discard-pile">
-                        <div class="card card-red">
-                            <span class="card-value">5</span>
+                        <div class="card card-back" id="deck">
+                            <div>DECK</div>
+                            <div>(<span id="deckCount">0</span>)</div>
                         </div>
                     </div>
-                </div>
-
-                <div class="player-hand">
-                    <h3>Your Hand</h3>
-                    <div class="cards-in-hand">
-                        <div class="card card-red"><span class="card-value">3</span></div>
-                        <div class="card card-blue"><span class="card-value">7</span></div>
-                        <div class="card card-green"><span class="card-value">2</span></div>
-                        <div class="card card-yellow"><span class="card-value">9</span></div>
-                        <div class="card card-red"><span class="card-value">Skip</span></div>
-                        <div class="card card-wild"><span class="card-value">Wild</span></div>
-                        <div class="card card-blue"><span class="card-value">1</span></div>
+                    <div class="discard-pile">
+                        <div class="card" id="topCard">—</div>
                     </div>
                 </div>
+                <div class="player-hand">
+                    <h3>Your Hand</h3>
+                    <div class="cards-in-hand" id="hand"></div>
+                </div>
+
             </div>
 
             <div class="game-sidebar">
@@ -87,12 +65,26 @@
                 </div>
 
                 <div class="game-actions">
-                    <button class="btn btn-primary">Draw Card</button>
+                    <button id="drawBtn" class="btn btn-primary">Draw Card</button>
+                    <button id="startBtn" class="btn btn-secondary">Start Game</button>
                     <button class="btn btn-warning">Call UNO!</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <div id="colorPickerModal" class="color-picker-modal">
+        <div class="color-picker-content">
+            <h2>Choose a Color</h2>
+            <div class="color-buttons">
+                <button class="color-btn color-btn-red" data-color="red">RED</button>
+                <button class="color-btn color-btn-yellow" data-color="yellow">YELLOW</button>
+                <button class="color-btn color-btn-green" data-color="green">GREEN</button>
+                <button class="color-btn color-btn-blue" data-color="blue">BLUE</button>
+            </div>
+        </div>
+    </div>
+
 
     <template id="template-chat-message">
         <div class="chat-message">
