@@ -107,6 +107,21 @@ export function registerGameSockets(io:Server){
                 });
             }
         });
+
+        socket.on("game:catchUno", async (data: { gameId: number; targetId: number }) => {
+            try {
+                const result = await gameService.catchUno(userId, data.targetId, data.gameId);
+                await emitStateToRoom(data.gameId);
+                io.to(`game:${data.gameId}`).emit("game:unoCaught", { 
+                    catcherId: userId, 
+                    caughtPlayerId: data.targetId 
+                });
+            } catch (err) {
+                socket.emit("game:error", {
+                    message: err instanceof Error ? err.message : String(err),
+                });
+            }
+        });
     });
 }
 

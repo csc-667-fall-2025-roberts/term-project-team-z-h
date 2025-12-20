@@ -8,7 +8,6 @@ const ACTION_VALUES: Value[] = ["skip", "reverse", "draw2"]
 export function createShuffledDeck(): Card[] {
     const deck: Card[] = [];
 
-    // Number cards
     for (const color of COLORS) {
         deck.push({ id: randomUUID(), color, value: "0" });
         

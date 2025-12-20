@@ -66,7 +66,7 @@ export async function startGame(gameId: number, userId: number) {
     // only the creator can start the game
     if (Number(gameRow.created_by) !== userId) throw new Error("Only Host Can Start!");
 
-    // Move state to tplaying 
+    // Move state to to playing 
     await db.none(`UPDATE games SET state = 'playing' WHERE id = $1`,
         [gameId]
     );
@@ -129,8 +129,9 @@ export async function playCard(
         throw new Error("Must choose a color for Wild card");
     }
 
+    clearUnoCaller(gameId, userId);
+    
     // remove from hand place on discard
-
     game.hands[userId] = hand.filter(c=> c.id !== cardId);
     game.discard.push(card);
 
@@ -184,18 +185,18 @@ export async function playCard(
 
 
 export async function drawCard(userId: number, gameId: number) {
-  const game = getGame(gameId);
+    const game = getGame(gameId);
 
-  const member = await db.oneOrNone(
+    const member = await db.oneOrNone(
     `SELECT 1 FROM game_players WHERE game_id=$1 AND user_id=$2`,
     [gameId, userId]
-  );
-  if (!member) throw new Error("Not a player");
+);
+    if (!member) throw new Error("Not a player");
 
-  const currentPlayerId = game.players[game.currentTurn];
-  if (currentPlayerId !== userId) throw new Error("Not your turn");
+    const currentPlayerId = game.players[game.currentTurn];
+    if (currentPlayerId !== userId) throw new Error("Not your turn");
 
-  if(game.deck.length === 0) {
+    if(game.deck.length === 0) {
     console.log("Deck is empty, reshuffling the pile ");
 
     if(game.discard.length <= 1){
@@ -210,37 +211,20 @@ export async function drawCard(userId: number, gameId: number) {
         const j = Math.floor(Math.random() * (i + 1));
         [game.deck[i], game.deck[j]] = [game.deck[j]!, game.deck[i]!];
     }
-  }
+} 
 
-/*
-  // If deck empty, reshuffle discard into deck (keep top card)
-  if (game.deck.length === 0 && game.discard.length > 1) {
-    const top = game.discard.pop()!;
-    game.deck = game.discard;
-    game.discard = [top];
-    // shuffle
-    for (let i = game.deck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const tmp = game.deck[i]!;
-      game.deck[i] = game.deck[j]!;
-      game.deck[j] = tmp;
-    }
+    const drawn = game.deck.shift();
+    if (!drawn) throw new Error("No cards left to draw");
 
-    console.log("Deck has been reshuffled")
-  }
-*/
+    game.hands[userId]?.push(drawn);
 
-  const drawn = game.deck.shift();
-  if (!drawn) throw new Error("No cards left to draw");
+    // MVP rule: drawing ends your turn immediately
+    game.currentTurn = nextPlayerIndex(game, 1);
 
-  game.hands[userId]?.push(drawn);
-
-  // MVP rule: drawing ends your turn immediately
-  game.currentTurn = nextPlayerIndex(game, 1);
-
-  return game;
+    return game;
 }
 
+const unoCallers = new Map<number, Set<number>>();
 
 export async function callUno(userId: number, gameId: number) {
     const game = getGame(gameId);
@@ -255,8 +239,47 @@ export async function callUno(userId: number, gameId: number) {
     if (!hand || hand.length !== 1) {
         throw new Error("Can only call UNO with exactly 1 card!");
     }
+
+    if(!unoCallers.has(gameId)) {
+        unoCallers.set(gameId, new Set());
+    }
+    unoCallers.get(gameId)!.add(userId);
     
     console.log(`🎉 Player ${userId} called UNO!`);
     
     return game;
+}
+
+export async function catchUno(catcherId: number, targetId: number, gameId: number) {
+    const game = getGame(gameId);
+    
+    const member = await db.oneOrNone(
+        `SELECT 1 FROM game_players WHERE game_id=$1 AND user_id=$2`,
+        [gameId, catcherId]
+    );
+    if (!member) throw new Error("Not a player");
+    
+    // Check if target has 1 card
+    const targetHand = game.hands[targetId];
+    if (!targetHand || targetHand.length !== 1) {
+        throw new Error("Target player doesn't have exactly 1 card!");
+    }
+    
+    const callers = unoCallers.get(gameId);
+    if (callers && callers.has(targetId)) {
+        throw new Error("That player already called UNO!");
+    }
+    
+    targetHand.push(...game.deck.splice(0, 2));
+    
+    console.log(`😱 Player ${targetId} caught without calling UNO! Drew 2 penalty cards.`);
+    
+    return { game, caughtPlayer: targetId };
+}
+
+export function clearUnoCaller(gameId: number, userId: number) {
+    const callers = unoCallers.get(gameId);
+    if (callers) {
+        callers.delete(userId);
+    }
 }

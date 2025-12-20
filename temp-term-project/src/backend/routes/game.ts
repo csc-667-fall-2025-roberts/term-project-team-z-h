@@ -4,6 +4,25 @@ import * as gameService from "../game/gameService";
 
 const router = express.Router();
 
+router.get("/:id/players", async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+        const players = await db.any(
+            `SELECT users.id as user_id, users.username 
+            FROM game_players 
+            JOIN users ON game_players.user_id = users.id 
+            WHERE game_players.game_id = $1`,
+            [id]
+        );
+        
+        res.json(players);
+    } catch (error) {
+        console.error("Error loading players:", error);
+        res.status(500).json({ error: "Failed to load players" });
+    }
+});
+
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
 
@@ -30,36 +49,6 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-// router.post("/:id/start", async (req, res) => {
-//     const user = req.session.user;
-//     const gameId = Number(req.params.id);
-
-//     if (!user) return res.redirect("/user/login");
-
-//     const game = await db.oneOrNone(
-//         `SELECT * FROM games WHERE id = $1`,
-//         [gameId]
-//     );
-
-//     if (!game || game.state !== "waiting") {
-//         return res.redirect(`/games/${gameId}`);
-//     }
-
-//     // Optional: only creator can start
-//     if (game.created_by !== user.id) {
-//         return res.redirect(`/games/${gameId}`);
-//     }
-
-//     await db.none(
-//         `UPDATE games SET state = 'playing' WHERE id = $1`,
-//         [gameId]
-//     );
-
-//     // Initialize in-memory UNO state
-//     gameService.initializeGame(gameId);
-
-//     res.redirect(`/games/${gameId}`);
-// });
 router.post("/:id/start", async (req, res) => {
     const user = req.session.user;
     const gameId = Number(req.params.id);
@@ -92,26 +81,14 @@ router.post("/:id/start", async (req, res) => {
     }
 
     try {
-        // initialize in memory first
         await gameService.initializeGame(gameId);
-
-        // only mark playing after init succeeded
         await db.none(`UPDATE games SET state = 'playing' WHERE id = $1`, [gameId]);
-
-        // notify sockets that game started
-        // const io = req.app.get("io");
-        // io.to(`game:${gameId}`).emit("game:started");
-
         return res.redirect(`/games/${gameId}`);
     } catch (err) {
         console.error("Failed to start game:", err);
-        // keep waiting so game doesn't disappear
         await db.none(`UPDATE games SET state = 'waiting' WHERE id = $1`, [gameId]);
         return res.redirect(`/games/${gameId}?error=start_failed`);
     }
 });
-
-
-
 
 export default router;

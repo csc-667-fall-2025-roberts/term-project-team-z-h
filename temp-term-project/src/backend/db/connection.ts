@@ -5,7 +5,7 @@ configDotenv();
 
 const connectionString = process.env.DATABASE_URL;
 if(connectionString === undefined){
-    throw "Connection string undefinedl terminating server start up";
+    throw "Connection string undefined terminating server start up";
 }
 
 const db = pgPromise()(connectionString)
